@@ -29,5 +29,6 @@ public interface ChordMessageInterface extends Remote
     public void addKeyValue(long key, int value);
     public void emit(long key, int value, File file);
     public <PagesJson> void bulk(PagesJson page);
+    dasdhsd
     
 }
