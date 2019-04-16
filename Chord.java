@@ -555,4 +555,32 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
 	       System.out.println("Cannot retrive id of successor or predecessor");
         }
     }
+    public void onChordSize(long source, int n) 
+    {
+    	
+    }
+    public void onPageCompleted(File file)
+    {
+    	
+    }
+    public void mapContext(CatalogPage page, Mapper mapper, ChordMessageInterface coordinator, File file)
+    {
+    	
+    }
+    public void reduceContext(CatalogPage page, Mapper reducer, ChordMessageInterface coordinator, File file)
+    {
+    	
+    }
+    public void addKeyValue(long key, int value) 
+    {
+    	
+    }
+    public void emit(long key, int value, File file)
+    {
+    	
+    }
+    public <PagesJson> void bulk(PagesJson page)
+    {
+    	
+    }
 }
