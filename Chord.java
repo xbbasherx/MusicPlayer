@@ -559,15 +559,13 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
         }
     }
     public void onChordSize(long source, int n) throws RemoteException
-    {
-    	
+    {	
     	if(source != guid)
     	{
     		successor.onChordSize(source, n++);
     	}
     	else {
     		chordSize = n;
-    		
     	}
     }
     /*public void onPageCompleted(File file)
