@@ -1,4 +1,5 @@
 import java.rmi.*;
+import java.util.HashMap;
 
 import DFS.PagesJson;
 
@@ -24,10 +25,10 @@ public interface ChordMessageInterface extends Remote
     
     public void onChordSize(long source, int n);
     public void onPageCompleted(File file);
-    public void mapContext(CatalogPage page, Mapper mapper, ChordMessageInterface coordinator, File file);
-    public void reduceContext(CatalogPage page, Mapper reducer, ChordMessageInterface coordinator, File file);
+    public void mapContext(HashMap<String, Integer> page, Mapper mapper, ChordMessageInterface coordinator, File file);
+    public void reduceContext(HashMap<String, Integer> page, Mapper reducer, ChordMessageInterface coordinator, File file);
     public void addKeyValue(long key, int value);
     public void emit(long key, int value, File file);
-    public <PagesJson> void bulk(PagesJson page);
+    public void bulk(HashMap<String, Integer> page);
     
 }

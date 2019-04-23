@@ -26,10 +26,10 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
      // rmi registry for lookup the remote objects.
     Registry registry;
 
-    // Successor peeer
+    // Successor peer
     ChordMessageInterface successor;
 
-    // Predecessor peeer
+    // Predecessor peer
     ChordMessageInterface predecessor;
 
     // array of fingers
@@ -557,30 +557,79 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
     }
     public void onChordSize(long source, int n) 
     {
+    	if(source != successor.getId())
+    	{
+    		successor.onChordSize(source, n++);
+    	}
+    	else {
+    		n = successor.getId();
+    		
+    	}
     	
     }
     public void onPageCompleted(File file)
     {
     	
     }
-    public void mapContext(CatalogPage page, Mapper mapper, ChordMessageInterface coordinator, File file)
+    public void mapContext(int page, Mapper mapper, ChordMessageInterface coordinator, String file)
     {
     	
     }
-    public void reduceContext(CatalogPage page, Mapper reducer, ChordMessageInterface coordinator, File file)
+    public void reduceContext(int page, Mapper reducer, ChordMessageInterface coordinator, String file)
     {
     	
     }
-    public void addKeyValue(long key, int value) 
+    public void addKeyValue(String key, String value) // value could be a json
     {
     	
     }
-    public void emit(long key, int value, File file)
+    public void emit(String key, String value, File file) //value could be a json
     {
     	
     }
-    public <PagesJson> void bulk(PagesJson page)
+    public void bulk(int page)
     {
     	
     }
+
+
+
+	@Override
+	public void mapContext(HashMap<String, Integer> page, Mapper mapper, ChordMessageInterface coordinator, File file) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public void reduceContext(HashMap<String, Integer> page, Mapper reducer, ChordMessageInterface coordinator,
+			File file) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public void addKeyValue(long key, int value) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public void emit(long key, int value, File file) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public void bulk(HashMap<String, Integer> page) {
+		// TODO Auto-generated method stub
+		
+	}
 }
