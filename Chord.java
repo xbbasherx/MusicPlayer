@@ -43,6 +43,9 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
 
     // path prefix
     String prefix;
+    
+    // chord size
+    long chordSize;
 
 
 
@@ -555,81 +558,40 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
 	       System.out.println("Cannot retrive id of successor or predecessor");
         }
     }
-    public void onChordSize(long source, int n) 
+    public void onChordSize(long source, int n) throws RemoteException
     {
-    	if(source != successor.getId())
+    	
+    	if(source != guid)
     	{
     		successor.onChordSize(source, n++);
     	}
     	else {
-    		n = successor.getId();
+    		chordSize = n;
     		
     	}
-    	
     }
-    public void onPageCompleted(File file)
+    /*public void onPageCompleted(File file)
+    {
+    	
+    }*/
+    public void mapContext(int page, Mapper mapper, ChordMessageInterface coordinator, String file) throws RemoteException
     {
     	
     }
-    public void mapContext(int page, Mapper mapper, ChordMessageInterface coordinator, String file)
+    public void reduceContext(int page, Mapper reducer, ChordMessageInterface coordinator, String file) throws RemoteException
     {
     	
     }
-    public void reduceContext(int page, Mapper reducer, ChordMessageInterface coordinator, String file)
+    public void addKeyValue(String key, String value) throws RemoteException // value could be a json
     {
     	
     }
-    public void addKeyValue(String key, String value) // value could be a json
+    public void emit(String key, String value, File file) throws RemoteException //value could be a json
     {
     	
     }
-    public void emit(String key, String value, File file) //value could be a json
+    public void bulk(int page) throws RemoteException
     {
     	
     }
-    public void bulk(int page)
-    {
-    	
-    }
-
-
-
-	@Override
-	public void mapContext(HashMap<String, Integer> page, Mapper mapper, ChordMessageInterface coordinator, File file) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-
-	@Override
-	public void reduceContext(HashMap<String, Integer> page, Mapper reducer, ChordMessageInterface coordinator,
-			File file) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-
-	@Override
-	public void addKeyValue(long key, int value) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-
-	@Override
-	public void emit(long key, int value, File file) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-
-	@Override
-	public void bulk(HashMap<String, Integer> page) {
-		// TODO Auto-generated method stub
-		
-	}
 }

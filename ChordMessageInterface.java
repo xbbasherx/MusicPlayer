@@ -23,12 +23,12 @@ public interface ChordMessageInterface extends Remote
     public byte[] get(long guidObject, long offset, int len) throws IOException, RemoteException;  
     public void delete(long guidObject) throws IOException, RemoteException;
     
-    public void onChordSize(long source, int n);
-    public void onPageCompleted(File file);
-    public void mapContext(HashMap<String, Integer> page, Mapper mapper, ChordMessageInterface coordinator, File file);
-    public void reduceContext(HashMap<String, Integer> page, Mapper reducer, ChordMessageInterface coordinator, File file);
-    public void addKeyValue(long key, int value);
-    public void emit(long key, int value, File file);
-    public void bulk(HashMap<String, Integer> page);
+    public void onChordSize(long source, int n) throws RemoteException;
+    public void onPageCompleted(String file)throws RemoteException;
+    public void mapContext(HashMap<String, Integer> page, Mapper mapper, ChordMessageInterface coordinator, String file) throws RemoteException;
+    public void reduceContext(HashMap<String, Integer> page, Mapper reducer, ChordMessageInterface coordinator, String file) throws RemoteException;
+    public void addKeyValue(long key, int value) throws RemoteException;
+    public void emit(long key, int value, String file) throws RemoteException;
+    public void bulk(HashMap<String, Integer> page) throws RemoteException;
     
 }
