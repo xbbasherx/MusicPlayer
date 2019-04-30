@@ -13,6 +13,13 @@ import java.net.*;
 import java.util.*;
 import java.io.*;
 
+import com.google.gson.Gson;
+import java.security.*;
+import java.math.BigInteger;
+
+
+
+
 /**
  * Chord extends from UnicastRemoteObject to support RMI.
  * It implements the ChordMessageInterface
@@ -26,10 +33,10 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
      // rmi registry for lookup the remote objects.
     Registry registry;
 
-    // Successor peer
+    // Successor peeer
     ChordMessageInterface successor;
 
-    // Predecessor peer
+    // Predecessor peeer
     ChordMessageInterface predecessor;
 
     // array of fingers
@@ -43,9 +50,302 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
 
     // path prefix
     String prefix;
-    
+    String mapPrefix;
+
     // chord size
-    long chordSize;
+    int chordSize;
+
+    //Extra Variables
+    TreeMap <String, CatalogPage> tm;
+
+    //-----MY METHODS------
+    public void map(long guid) throws RemoteException
+    {
+
+      //---Outline---
+      //load CatalogPage
+
+      //for each catalog item in the page
+
+        //for each word in the "title", "album", "artist"
+
+          //store catalog item in  
+
+
+      //---Implementation---
+
+      //load CatalogPage
+
+      RemoteInputFileStream rawdata = null;
+      CatalogPage catalogPage = new CatalogPage();
+      try {
+          rawdata = new RemoteInputFileStream(prefix + guid);
+          rawdata.connect();
+          Scanner scan = new Scanner(rawdata);
+          scan.useDelimiter("\\A");
+          String data = scan.next();
+          Gson gson = new Gson();
+          catalogPage = gson.fromJson(data, CatalogPage.class);
+
+
+      } catch (IOException e)
+      {
+          throw(new RemoteException("File does not exists"));
+      }
+
+
+      //for each catalog item in the page
+      for(int i = 0 ; i < catalogPage.size(); i++ )
+      {
+
+        //Get all words in artist, album and song title
+        String line = catalogPage.getItem(i).artist.name;
+        line = line + " " + catalogPage.getItem(i).release.name; // album
+        line = line + " " + catalogPage.getItem(i).song.title;
+
+        //System.out.println("line: (" + line +")"); // DEBUG - Print Line
+        line = line.toLowerCase();
+
+        //Separate line into words
+        String[] words = line.split("\\s+");
+
+
+        //TODO
+        //Remove punctuation // Remove Special Symbols
+        /**
+        for (int j = 0; j < words.length; j++) {
+          // You may want to check for a non-word character before blindly
+          // performing a replacement
+          // It may also be necessary to adjust the character class
+          words[i] = words[i].replaceAll("[^\\w]", "");
+        }
+        **/
+
+        //For each word
+        for (int k = 0; k < words.length; k++) {
+          //System.out.println("\t"+ "word: (" + words[k] +")"); // DEBUG - Print each word
+
+          //Get key
+          String key = words[k];
+          if(key.length()>2)
+          {
+            key = key.substring(0,2);//get first 2 characters only
+          }
+
+          //if first 2 chars of word exists in Hash (Reverse Index)
+          if (tm.containsKey(key))  
+          { 
+            //add song to CatalogPage
+              //System.out.println("\t" + "add song to CatalogPage"); // DEBUG
+
+              tm.get(key).addItem(catalogPage.getItem(i));      //Uses 2 chars as key
+          }
+          else // this is a new key, add it to the HashMap
+          {
+            //add song to new CatalogPage
+            CatalogPage capa = new CatalogPage();
+            capa.addItem(catalogPage.getItem(i));
+
+            //add first two chars of word to Hash ()
+            tm.put(key, capa);
+          }
+            
+        }
+
+      }
+
+      System.out.println("Indexing Done.");
+
+      // At this point the local file has been indexed
+      // and stored in the TreeMap.
+
+      // This process will be repeated for each page file in this peer.
+      // Once all local page files have been processed...
+
+      //Send() the the nodes to the correct peer 
+
+    }
+
+    //Send all TreeMap nodes that dont belong in this peer.
+    public void sendAll()
+    {
+
+      //-----OutLine-----
+      //for each node in TreeMap
+        //determine guid
+        //if successor is not this peer
+          //send to proper peer
+        //else skip to next node
+
+      //-----Implementation-----
+      //for each node in TreeMap
+      for(Map.Entry<String,CatalogPage> entry : tm.entrySet()) 
+      {
+        //determine guid
+        String k = entry.getKey();
+        Long guid = md5( k + "reverseIndex" + k );
+
+        try
+        {
+          ChordMessageInterface peer = this.locateSuccessor(guid); // locate successor
+
+          //compare guids (compare long values)
+          int result = Long.compare(peer.getId(), this.guid);
+
+          //if successor is this peer
+          if(result == 0)
+          {
+            //skip to next node
+          }
+          else //send to proper peer
+          {
+            //save to temporary file?
+            //TODO: Test Compilation
+
+            //send using RemoteInputFileStream
+            //RemoteInputFileStream file = new RemoteInputFileStream(entry.getValue());//WIP TODO: CONVERT emtry.getValue to String
+            //peer.store(file);
+          }
+        
+        }
+        catch(Exception e)
+        {
+
+        }
+      
+      }//END for each node in TreeMap
+
+    }//END sendAll()
+
+    //Send an item  "key, <s1, s2, s3...> " aka CatalogPage
+    public void send()
+    {
+
+    }
+
+    //place received file into TreeMap
+      //if tree map already contains the key then combine received page with current page
+      //else just store the new page
+    public void store(RemoteInputFileStream rawdata) throws RemoteException
+    {
+      //-----OutLine-----
+      //receive data
+      //place received file into TreeMap
+        //if tree map already contains the key then combine received page with current page
+        //else just store the new page
+
+      //-----Implementation-----
+      //receive data
+      CatalogPage catalogPage = new CatalogPage();
+      try {
+        rawdata.connect();
+        Scanner scan = new Scanner(rawdata);
+        scan.useDelimiter("\\A");
+        String data = scan.next();
+        Gson gson = new Gson();
+        catalogPage = gson.fromJson(data, CatalogPage.class);
+      } catch (Exception e)
+      {
+          throw(new RemoteException(":error in store(): \\_(^_^)_/"));
+      }
+      //place received file into TreeMap
+
+      //if tree map already contains the key 
+      if(tm.containsKey(catalogPage.getKey()))
+      {
+        //then combine received page with current page
+        for(int i = 0; i < catalogPage.size(); i ++)
+        {
+          tm.get(catalogPage.getKey()).addItem(catalogPage.getItem(i) );
+        }
+      }
+      else
+      {
+        //else just store the new page
+        tm.put(catalogPage.getKey(), catalogPage);
+      }
+    }
+
+    public void emit()
+    {
+        //for each key in the TreeMap emit "CatalogPage"
+
+          //locate peer 
+
+          //peer.store(CatalogPage)
+    } 
+
+    public void bulk()
+    {
+    	
+      //for each CatalogPage in TreeMap
+
+        //generate guid
+
+        //save to file
+    	for(Map.Entry<String,CatalogPage> entry : tm.entrySet()) {
+    		String k = entry.getKey();
+    		Long guid = md5( k + "reverseIndex" + k );
+    		Gson gson = new Gson();
+            String jsonString = gson.toJson(entry.getValue()); // Convert CatalogPage to Json
+            try {
+				this.put(guid,jsonString);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		
+    	}
+    }
+
+    public int getChordSize()
+    {
+      return this.chordSize;
+    }
+
+    //-----END MY METHODS-----
+
+    //-----NEW METHODS-----
+    public void onChordSize(long source, int n) throws RemoteException
+    {
+
+      //System.out.println("source id: " + source);
+      //System.out.println("this   id: " + this.guid);
+
+      if(n==0)
+      {
+        successor.onChordSize(source, ++n);
+      }
+      else
+      {
+        int result = Long.compare(source, this.guid);
+
+        if(result == 0)// if result == 0 they are equal
+        {
+          chordSize = n;
+        }
+        else
+        {
+          successor.onChordSize(source, ++n);
+        }
+      }
+
+
+    }
+    public void onPageCompleted(String file) throws RemoteException
+    {
+
+    }
+    //public void mapContext(int page, Mapper mapper, ChordMessageInterface coordinator, String file) throws RemoteException
+    //{
+
+    //}
+    
+    //public void reduceContext(int page, Mapper reducer, ChordMessageInterface coordinator, String file) throws RemoteException
+    //{
+
+    //}
+    //-----END NEW METHODS-----
 
 
 
@@ -60,9 +360,15 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
  * @param guid the global unique id of the peer.
  */
     public Chord(int port, long guid) throws RemoteException {
+
+      chordSize = 1;
+      tm = new TreeMap<String, CatalogPage>();
+
+
         int j;
         // Initialize the variables
         prefix = "./" + guid + "/repository/";
+        mapPrefix = prefix + "/map/";
 	    finger = new ChordMessageInterface[M];
         for (j=0;j<M; j++){
 	       finger[j] = null;
@@ -558,38 +864,25 @@ public class Chord extends java.rmi.server.UnicastRemoteObject implements ChordM
 	       System.out.println("Cannot retrive id of successor or predecessor");
         }
     }
-    public void onChordSize(long source, int n) throws RemoteException
-    {	
-    	if(source != guid)
-    	{
-    		successor.onChordSize(source, n++);
-    	}
-    	else {
-    		chordSize = n;
-    	}
-    }
-    /*public void onPageCompleted(File file)
+
+
+    //TODO: MOVE THIS DEFINITION AND THE ONE IN FDS CLASS TO A SEPARATE PACKAGE
+    //HASH FUNCTION
+    private long md5(String objectName)
     {
-    	
-    }*/
-    public void mapContext(int page, Mapper mapper, ChordMessageInterface coordinator, String file) throws RemoteException
-    {
-    	
-    }
-    public void reduceContext(int page, Mapper reducer, ChordMessageInterface coordinator, String file) throws RemoteException
-    {
-    	
-    }
-    public void addKeyValue(String key, String value) throws RemoteException // value could be a json
-    {
-    	
-    }
-    public void emit(String key, String value, File file) throws RemoteException //value could be a json
-    {
-    	
-    }
-    public void bulk(int page) throws RemoteException
-    {
-    	
+        try
+        {
+            MessageDigest m = MessageDigest.getInstance("MD5");
+            m.reset();
+            m.update(objectName.getBytes());
+            BigInteger bigInt = new BigInteger(1,m.digest());
+            return Math.abs(bigInt.longValue());
+        }
+        catch(NoSuchAlgorithmException e)
+        {
+                e.printStackTrace();
+                
+        }
+        return 0;
     }
 }
