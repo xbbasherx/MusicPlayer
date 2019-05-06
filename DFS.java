@@ -1262,13 +1262,14 @@ public class DFS
         System.out.println(TAG + ": mapping pages..."); // DEBUG
         for(int index = 0 ; index < file.getNumberOfPages(); index++)
         {
-            //get guid
             Long guid = file.getPage(index).getGUID();
             // locate successor
             ChordMessageInterface peer = this.locateSuccessor(guid);
             //map(guid) 
             peer.map("reverseIndex", guid);
         }
+        
+        
 
         //WIP
         //wait until all pages are mapped
